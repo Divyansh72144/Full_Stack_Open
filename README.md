@@ -2,7 +2,7 @@
 
 This repository contains all of my submissions for the Full Stack Open course
 
-    Fundamentals of web apps
+   <p> Fundamentals of web apps
     Introduction to React
     Communicating with servers
     Programming a server with NodeJS and Express
@@ -15,6 +15,6 @@ This repository contains all of my submissions for the Full Stack Open course
     React Native
     CI/CD
     Containers
-    Using relational databases
+    Using relational databases </p>
 
-Total hours: 310
+<h2>Total hours: </h2>
