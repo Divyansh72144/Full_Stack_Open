@@ -1,4 +1,4 @@
-The University of Helsinki - Full Stack Open
+<h1>The University of Helsinki - Full Stack Open<h1/>
 
 This repository contains all of my submissions for the Full Stack Open course
 
