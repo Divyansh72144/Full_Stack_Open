@@ -2,6 +2,7 @@ import { useState } from "react";
 import SearchFilter from "./components/searchFilter";
 import PersonForm from "./components/addPerson";
 import PersonList from "./components/peopleList";
+import personService from "./services/phoneservices";
 
 const App = () => {
   const [persons, setPersons] = useState([
@@ -27,15 +28,61 @@ const App = () => {
     setSearchName(e.target.value);
   };
 
+  const handleDeletePerson = (id) => {
+    const personToDelete = persons.find((person) => person.id === id);
+
+    if (window.confirm(`Delete ${personToDelete.name} ?`)) {
+      personService
+        .remove(id)
+        .then(() => {
+          setPersons(persons.filter((person) => person.id !== id));
+        })
+        .catch((error) => console.error("Error deleting person:", error));
+    }
+  };
+
   const addPerson = (event) => {
     event.preventDefault();
-    const newPerson = { name: newName, number: newNumber };
+    const personToUpdate = persons.find((person) => person.name === newName);
     if (persons.some((person) => person.name === newName)) {
-      window.alert(`${newName} is already added to phonebook`);
+      if (
+        window.confirm(
+          `${newName} is already added to the phonebook. Would you like to update the phone number?`
+        )
+      ) {
+        const updatedPerson = { ...personToUpdate, number: newNumber };
+        console.log("1", updatedPerson);
+        console.log("2", personToUpdate.id, updatedPerson);
+
+        personService
+          .update(personToUpdate.id, updatedPerson)
+          .then((response) => {
+            console.log(response, "this is response ");
+            console.log(response.data, "this is response data ");
+
+            setPersons(
+              persons.map((person) =>
+                person.id === personToUpdate.id ? response.data : person
+              )
+            );
+            setNewName("");
+            setNewNumber("");
+          })
+          .catch((error) => console.error("Error updating person:", error));
+      }
     } else {
-      setPersons([...persons, newPerson]);
-      setNewName("");
-      setNewNumber("");
+      const newPerson = { name: newName, number: newNumber };
+
+      personService
+        .create(newPerson)
+        .then((response) => {
+          console.log(response, "this is response ");
+          console.log(response.data, "this is response data ");
+          setPersons(persons.concat(response.data));
+          setNewName("");
+          setNewNumber("");
+        })
+        .catch((error) => console.error("Error adding person:", error));
     }
   };
 
@@ -57,7 +104,11 @@ const App = () => {
         handleNumberChange={handleNumberChange}
       />
       <h2>Numbers</h2>
-      <PersonList persons={persons} searchName={searchName} />
+      <PersonList
+        persons={persons}
+        searchName={searchName}
+        handleDeletePerson={handleDeletePerson}
+      />
     </div>
   );
 };
