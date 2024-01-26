@@ -3,18 +3,28 @@ import SearchFilter from "./components/searchFilter";
 import PersonForm from "./components/addPerson";
 import PersonList from "./components/peopleList";
 import personService from "./services/phoneservices";
+import { useEffect } from "react";
+import "./index.css";
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "040-123456", id: 1 },
-    { name: "Ada Lovelace", number: "39-44-5323523", id: 2 },
-    { name: "Dan Abramov", number: "12-43-234345", id: 3 },
-    { name: "Mary Poppendieck", number: "39-23-6423122", id: 4 },
-  ]);
+  const [persons, setPersons] = useState([]);
 
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [searchName, setSearchName] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const Notification = ({ message }) => {
+    if (message === null) {
+      return null;
+    }
+
+    // Check for a specific keyword or phrase to identify success or error
+    const isSuccessMessage = message.toLowerCase().includes("success");
+    const className = isSuccessMessage ? "success" : "error";
+
+    return <div className={className}>{message}</div>;
+  };
 
   const handleNameChange = (e) => {
     setNewName(e.target.value);
@@ -28,6 +38,17 @@ const App = () => {
     setSearchName(e.target.value);
   };
 
+  useEffect(() => {
+    personService
+      .getAll()
+      .then((response) => {
+        setPersons(response.data);
+      })
+      .catch((error) => {
+        setErrorMessage(`Error fetching data: ${error.response.data.error}`);
+      });
+  }, []);
+
   const handleDeletePerson = (id) => {
     const personToDelete = persons.find((person) => person.id === id);
 
@@ -36,8 +57,13 @@ const App = () => {
         .remove(id)
         .then(() => {
           setPersons(persons.filter((person) => person.id !== id));
+          setErrorMessage(`Success, Deleted ${personToDelete.name}`);
         })
-        .catch((error) => console.error("Error deleting person:", error));
+        .catch((error) => {
+          setErrorMessage(
+            `error, Information of ${personToDelete.name} has already been removed from the server`
+          );
+        });
     }
   };
 
@@ -81,14 +107,23 @@ const App = () => {
           setPersons(persons.concat(response.data));
           setNewName("");
           setNewNumber("");
+          setErrorMessage(`success, Added ${newPerson.name}`);
         })
-        .catch((error) => console.error("Error adding person:", error));
+        .catch((error) => {
+          setErrorMessage(
+            `There was a problem adding ${newPerson.name} was added`
+          );
+        });
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 5000);
     }
   };
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={errorMessage} />
       <div>
         <SearchFilter
           searchName={searchName}
