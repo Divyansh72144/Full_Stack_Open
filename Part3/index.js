@@ -1,6 +1,19 @@
 const http = require("http"); //Imports Node's built-in web server
 const express = require("express");
 const app = express();
+
+const morgan = require("morgan"); //Middleware are functions that can be used for handling request and response objects.s
+
+morgan.token("postData", (req) => {
+  return JSON.stringify(req.body);
+});
+
+app.use(
+  morgan(
+    ":method :url :status :res[content-length] - :response-time ms :postData"
+  )
+);
+
 app.use(express.json());
 
 const generateRandomId = () => {
