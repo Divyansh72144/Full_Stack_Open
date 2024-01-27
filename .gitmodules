@@ -1,0 +1,3 @@
+[submodule "Part2/Part2/countries"]
+	path = Part2/Part2/countries
+	url = https://github.com/Divyansh72144/Full_Stack_Open.git
