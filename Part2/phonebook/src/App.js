@@ -19,7 +19,6 @@ const App = () => {
       return null;
     }
 
-    // Check for a specific keyword or phrase to identify success or error
     const isSuccessMessage = message.toLowerCase().includes("success");
     const className = isSuccessMessage ? "success" : "error";
 
