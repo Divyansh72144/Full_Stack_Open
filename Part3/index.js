@@ -1,8 +1,12 @@
 const http = require("http"); //Imports Node's built-in web server
 const express = require("express");
 const app = express();
-
+const path = require("path");
 const morgan = require("morgan"); //Middleware are functions that can be used for handling request and response objects.s
+app.use(express.static("build"));
+const cors = require("cors");
+app.use(express.static("dist"));
+app.use(cors());
 
 morgan.token("postData", (req) => {
   return JSON.stringify(req.body);
@@ -45,8 +49,8 @@ let people = [
   },
 ];
 
-app.get("/", (request, response) => {
-  response.send(`<h1>Hello World!</h1>`);
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "build", "index.html"));
 });
 
 app.get("/api/persons", (request, response) => {
