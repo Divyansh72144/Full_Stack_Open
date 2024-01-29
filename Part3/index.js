@@ -7,16 +7,42 @@ app.use(express.static("build"));
 const cors = require("cors");
 app.use(express.static("dist"));
 app.use(cors());
+const mongoose = require("mongoose");
+require("dotenv").config();
 
-morgan.token("postData", (req) => {
-  return JSON.stringify(req.body);
+const Person = require("./models/person");
+
+const password = process.env.DB_PASSWORD;
+// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
+
+const url = `mongodb+srv://Divyansh:${password}@divyansh.jvjpnhx.mongodb.net/phonebook?retryWrites=true&w=majority`;
+
+mongoose.set("strictQuery", false);
+mongoose.connect(url);
+
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: Number,
 });
 
-app.use(
-  morgan(
-    ":method :url :status :res[content-length] - :response-time ms :postData"
-  )
-);
+personSchema.set("toJSON", {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+  },
+});
+
+// const Persons = mongoose.model("Person", personSchema);
+// morgan.token("postData", (req) => {
+//   return JSON.stringify(req.body);
+// });
+
+// app.use(
+//   morgan(
+//     ":method :url :status :res[content-length] - :response-time ms :postData"
+//   )
+// );
 
 app.use(express.json());
 
@@ -49,13 +75,19 @@ let people = [
   },
 ];
 
+app.get("/api/persons", (request, response) => {
+  Person.find({}).then((persons) => {
+    response.json(persons);
+  });
+});
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "build", "index.html"));
 });
 
-app.get("/api/persons", (request, response) => {
-  response.json(people);
-});
+// app.get("/api/persons", (request, response) => {
+//   response.json(people);
+// });
 
 app.get("/info", (request, response) => {
   const currentDate = new Date();
@@ -66,42 +98,30 @@ app.get("/info", (request, response) => {
   );
 });
 
-app.get("/api/person/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = people.find((person) => {
-    return person.id === id;
-  });
-
-  if (person) {
+app.get("/api/persons/:id", (request, response) => {
+  Person.findById(request.params.id).then((person) => {
     response.json(person);
-  } else {
-    response.status(404).end();
-  }
+  });
 });
 
 app.post("/api/persons", (request, response) => {
-  const person = request.body;
-  const nameExists = people.some(
-    (existingPerson) =>
-      existingPerson.name.toLowerCase() === person.name.toLowerCase()
-  );
-  if (
-    !person.name ||
-    person.name.trim() === "" ||
-    !person.number ||
-    person.number.trim() === ""
-  ) {
-    return response.status(400).json({ error: "Name or Number is missing" });
+  const body = request.body;
+  console.log("Received POST request with body:", body);
+
+  if (body.name === undefined || body.number === undefined) {
+    console.log("Name or Number missing in the request body.");
+    return response.status(400).json({ error: "Name or Number missing" });
   }
 
-  if (nameExists) {
-    return response.status(400).json({ error: "Name must be unique" });
-  }
+  const person = new Person({
+    name: body.name,
+    number: body.number,
+  });
 
-  const newId = generateRandomId();
-  person.id = newId;
-  console.log(person);
-  response.json(person);
+  person.save().then((savedPerson) => {
+    console.log("Person saved:", savedPerson);
+    response.json(savedPerson);
+  });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
@@ -111,6 +131,6 @@ app.delete("/api/persons/:id", (request, response) => {
   response.status(204).end();
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT;
 app.listen(PORT);
 console.log(`Server running on port ${PORT}`);
