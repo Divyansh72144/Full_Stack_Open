@@ -85,10 +85,6 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "build", "index.html"));
 });
 
-// app.get("/api/persons", (request, response) => {
-//   response.json(people);
-// });
-
 app.get("/info", (request, response) => {
   const currentDate = new Date();
   const itemCount = people.length;
