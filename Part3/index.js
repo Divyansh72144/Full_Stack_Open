@@ -21,8 +21,22 @@ mongoose.set("strictQuery", false);
 mongoose.connect(url);
 
 const personSchema = new mongoose.Schema({
-  name: String,
-  number: Number,
+  name: {
+    type: String,
+    minlength: 3,
+    required: true,
+  },
+  number: {
+    type: String,
+    validate: {
+      validator: function (v) {
+        return /^\d{2,3}-\d+$/.test(v); // Update the regex pattern
+      },
+      message: (props) =>
+        `${props.value} is not a valid phone number! Please use the format xx-xxxxxxx or xxx-xxxxxxx.`,
+    },
+    required: true,
+  },
 });
 
 personSchema.set("toJSON", {
@@ -36,14 +50,26 @@ personSchema.set("toJSON", {
 const errorHandler = (error, request, response, next) => {
   console.error(error.message);
 
-  if (error.name === "CastError" && error.kind === "ObjectId") {
-    return response.status(400).send({ error: "Malformatted id" });
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    if (
+      error.errors &&
+      error.errors.name &&
+      error.errors.name.kind === "minlength"
+    ) {
+      return response
+        .status(400)
+        .json({ error: "Name must be at least 3 characters long" });
+    }
+    return response.status(400).json({ error: error.message });
   }
 
   next(error);
 };
 
 app.use(errorHandler);
+
 // const Persons = mongoose.model("Person", personSchema);
 // morgan.token("postData", (req) => {
 //   return JSON.stringify(req.body);
@@ -89,6 +115,8 @@ let people = [
 app.get("/api/persons", (request, response) => {
   Person.find({}).then((persons) => {
     response.json(persons);
+    const body = request.body;
+    console.log(typeof body.number, "this is the type");
   });
 });
 
@@ -125,24 +153,34 @@ app.get("/api/persons/:id", (request, response, next) => {
     .catch((error) => next(error));
 });
 
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
   const body = request.body;
-  console.log("Received POST request with body:", body);
-
-  if (body.name === undefined || body.number === undefined) {
-    console.log("Name or Number missing in the request body.");
-    return response.status(400).json({ error: "Name or Number missing" });
+  if (!body.name || body.name.length < 3 || !body.number) {
+    console.log("Validation error:", body.name);
+    return response.status(400).json({
+      error:
+        "Name must be at least 3 characters long and number must be provided",
+    });
   }
 
-  const person = new Person({
-    name: body.name,
-    number: body.number,
-  });
+  if (!/^\d{2,3}-\d+$/.test(body.number)) {
+    return response.status(400).json({
+      error:
+        "Invalid phone number format! Please use the format xx-xxxxxxx or xxx-xxxxxxx.",
+    });
+  } else {
+    const person = new Person({
+      name: body.name,
+      number: body.number,
+    });
 
-  person.save().then((savedPerson) => {
-    console.log("Person saved:", savedPerson);
-    response.json(savedPerson);
-  });
+    person
+      .save()
+      .then((savedPerson) => {
+        response.json(savedPerson);
+      })
+      .catch((error) => next(error));
+  }
 });
 
 app.delete("/api/persons/:id", (request, response, next) => {
@@ -155,16 +193,30 @@ app.delete("/api/persons/:id", (request, response, next) => {
 
 app.put("/api/persons/:id", (request, response, next) => {
   const body = request.body;
-  console.log(body);
 
   const person = {
     name: body.name,
     number: body.number,
   };
 
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+  if (!/^\d{2,3}-\d+$/.test(person.number)) {
+    return response.status(400).json({
+      error:
+        "Invalid phone number format! Please use the format xx-xxxxxxx or xxx-xxxxxxx.",
+    });
+  }
+
+  Person.findByIdAndUpdate(request.params.id, person, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  })
     .then((updatedPerson) => {
-      response.json(updatedPerson);
+      if (updatedPerson) {
+        response.json(updatedPerson);
+      } else {
+        response.status(404).json({ error: "Person not found" });
+      }
     })
     .catch((error) => next(error));
 });
