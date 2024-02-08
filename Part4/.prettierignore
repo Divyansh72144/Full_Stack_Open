@@ -7,3 +7,6 @@ bloglists.js
 bloglist.js
 config.js
 middleware.js
+for_testing.js
+reverse.test.js
+list_helper.js
