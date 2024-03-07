@@ -22,11 +22,15 @@ blogsRouter.get('/:id', (request, response, next) => {
 blogsRouter.post('/', (request, response, next) => {
   const { body } = request;
 
+  if (!body.title || !body.url) {
+    return response.status(400).json({ error: 'Title and url are required fields.' });
+  }
+
   const blog = new Blog({
     title: body.title,
-    author: body.author,
+    author: body.author || '', 
     url: body.url,
-    likes: body.likes,
+    likes: body.likes || 0, 
   });
 
   blog
@@ -48,13 +52,16 @@ blogsRouter.delete('/:id', (request, response, next) => {
 blogsRouter.put('/:id', (request, response, next) => {
   const { body } = request;
 
+  if (!body.title || !body.url) {
+    return response.status(400).json({ error: 'Title and url are required fields.' });
+  }
+
   const blog = {
     title: body.title,
-    author: body.author,
+    author: body.author || '', 
     url: body.url,
-    likes: body.likes,
+    likes: body.likes || 0, 
   };
-
   Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
     .then((updatedBlog) => {
       response.json(updatedBlog);
