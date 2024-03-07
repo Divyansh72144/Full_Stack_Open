@@ -49,24 +49,26 @@ blogsRouter.delete('/:id', (request, response, next) => {
     .catch((error) => next(error));
 });
 
-blogsRouter.put('/:id', (request, response, next) => {
-  const { body } = request;
+blogsRouter.put('/:id', async (request, response, next) => {
+  try {
+    const { body } = request;
+    const { id } = request.params;
+    const { likes } = body;
 
-  if (!body.title || !body.url) {
-    return response.status(400).json({ error: 'Title and url are required fields.' });
+    if (likes === undefined) {
+      return response.status(400).json({ error: 'Likes field is required for updating.' });
+    }
+
+    const updatedBlog = await Blog.findByIdAndUpdate(id, { likes }, { new: true });
+
+    if (!updatedBlog) {
+      return response.status(404).json({ error: 'Blog not found' });
+    }
+
+    response.json(updatedBlog);
+  } catch (error) {
+    next(error);
   }
-
-  const blog = {
-    title: body.title,
-    author: body.author || '', 
-    url: body.url,
-    likes: body.likes || 0, 
-  };
-  Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
-    .then((updatedBlog) => {
-      response.json(updatedBlog);
-    })
-    .catch((error) => next(error));
-});
+})
 
 module.exports = blogsRouter;
