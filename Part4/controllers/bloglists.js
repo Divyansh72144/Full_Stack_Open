@@ -1,10 +1,10 @@
 const blogsRouter = require('express').Router();
 const Blog = require('../models/bloglist');
+const User = require('../models/user')
 
-blogsRouter.get('/', (request, response) => {
-  Blog.find({}).then((blogs) => {
-    response.json(blogs);
-  });
+blogsRouter.get('/', async (request, response) => {
+  const blogs = await Blog.find({}).populate('user', 'username name');
+  response.json(blogs);
 });
 
 blogsRouter.get('/:id', (request, response, next) => {
@@ -19,8 +19,10 @@ blogsRouter.get('/:id', (request, response, next) => {
     .catch((error) => next(error));
 });
 
-blogsRouter.post('/', (request, response, next) => {
+blogsRouter.post('/', async (request, response, next) => {
   const { body } = request;
+
+  const user = await User.findById(body.userId)
 
   if (!body.title || !body.url) {
     return response.status(400).json({ error: 'Title and url are required fields.' });
@@ -30,8 +32,15 @@ blogsRouter.post('/', (request, response, next) => {
     title: body.title,
     author: body.author || '', 
     url: body.url,
-    likes: body.likes || 0, 
+    likes: body.likes || 0,
+    user: user.id 
   });
+
+  const savedBlog = await blog.save()
+  user.blogs = user.blogs.concat(savedBlog.id)
+  await user.save()
+
+  response.status(201).json(savedBlog)
 
   blog
     .save()

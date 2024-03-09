@@ -1,6 +1,8 @@
 const dummy = (blogs) => 1;
 // eslint-disable-next-line import/no-extraneous-dependencies
 const _ = require('lodash');
+const User = require('../models/user')
+
 
 const sampleBlogs = [
   {
@@ -99,14 +101,12 @@ const mostLikes = (blogs) => {
   return { author: mostLikedAuthor, likes: maxLikes };
 };
 
-module.exports = {
-  dummy,
-  sampleBlogs,
-  totalLikes,
-  favouriteBlog,
-  mostBlogs,
-  mostLikes,
-};
+const usersInDb = async () => {
+  const users = await User.find({})
+  return users.map(user => user.toJSON())
+}
+
+
 
 module.exports = {
   dummy,
@@ -115,4 +115,5 @@ module.exports = {
   favouriteBlog,
   mostBlogs,
   mostLikes,
+  usersInDb
 };
