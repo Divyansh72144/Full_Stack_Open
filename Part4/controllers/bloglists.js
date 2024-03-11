@@ -30,16 +30,11 @@ blogsRouter.get('/:id', (request, response, next) => {
 });
 
 blogsRouter.post('/', async (request, response, next) => {
-  const { body } = request;
+  const { body,user} = request;
 
-
-  const decodedToken=jwt.verify(request.token,process.env.SECRET)
-
-  if(!decodedToken.id){
-    return response.status(401).json({error:'token invalid'})
+  if (!user || !user.id) {
+    return response.status(401).json({ error: 'User not authenticated' });
   }
-
-  const user = await User.findById(decodedToken.id)
 
   if (!body.title || !body.url) {
     return response.status(400).json({ error: 'Title and url are required fields.' });
@@ -70,19 +65,26 @@ blogsRouter.post('/', async (request, response, next) => {
 blogsRouter.delete('/:id', async (request, response, next) => {
   try {
     const { id } = request.params;
-    const decodedToken = jwt.verify(request.token, process.env.SECRET);
-    if (!decodedToken.id) {
-      return response.status(401).json({ error: 'Token missing or invalid' });
+
+    const{user}=request;
+    
+    console.log(user)
+
+
+    if (!user || !user.id) {
+      return response.status(401).json({ error: 'User not authenticated' });
     }
 
     const blog = await Blog.findById(id);
+
     if (!blog) {
       return response.status(404).json({ error: 'Blog not found' });
     }
 
-    if (blog.user.toString() !== decodedToken.id) {
+    if (!blog.user || blog.user.toString() !== user.id) {
       return response.status(403).json({ error: 'Unauthorized access' });
     }
+
 
     await Blog.findByIdAndRemove(id);
     response.status(204).end();

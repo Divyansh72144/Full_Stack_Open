@@ -7,47 +7,80 @@ const api = supertest(app);
 const User = require('../models/user');
 const helper = require('../utils/list_helper');
 const assert = require('assert');
+const Blog = require('../models/bloglist')
+const jwt = require('jsonwebtoken');
+
+let token;
 
 beforeAll(async () => {
-  // Any setup code if needed before running tests
+  const passwordHash = await bcrypt.hash('testpassword', 10);
+  const user = new User({ username: 'testuser', passwordHash });
+  await user.save();
+
+  const response = await api
+    .post('/api/login')
+    .send({ username: 'testuser', password: 'testpassword' });
+
+  token = response.body.token;
 });
 
 test('GET /api/blogs should return correct number of blog posts in JSON format', async () => {
   const response = await api.get('/api/blogs');
 
   expect(response.status).toBe(200);
-  expect(response.body).toHaveLength(10);
+  expect(response.body).toHaveLength(0);
 
   response.body.forEach((blogPost) => {
     expect(blogPost.id).toBeDefined();
   });
 });
 
+
 test('POST /api/blogs should add to the blog list and total count should be +1', async () => {
-  const initialResponse = await api.get('/api/blogs');
+  const initialResponse = await api
+    .get('/api/blogs')
+    .set('Authorization', `Bearer ${token}`);
   const initialBlogCount = initialResponse.body.length;
-  
+
   const newBlogData = {
     title: 'a',
     author: 'abcc',
     url: 'ab.com',
-  }
+  };
 
   const postResponse = await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
     .send(newBlogData);
-  
-  expect(postResponse.status).toBe(200); 
-  expect(postResponse.body.id).toBeDefined(); 
+
+  expect(postResponse.status).toBe(201);
+  expect(postResponse.body.id).toBeDefined();
 
   const expectedLikes = postResponse.body.likes || 0;
   expect(expectedLikes).toBe(0);
 
-  const finalResponse = await api.get('/api/blogs');
+  const finalResponse = await api
+    .get('/api/blogs')
+    .set('Authorization', `Bearer ${token}`);
   const finalBlogCount = finalResponse.body.length;
 
   expect(finalBlogCount).toBe(initialBlogCount + 1);
-}, 10000); // Increase timeout to 10 seconds
+}, 10000);
+
+
+test('POST /api/blogs should return 401 Unauthorized if token is not provided', async () => {
+  const newBlogData = {
+    title: 'Test Blog',
+    author: 'Test Author',
+    url: 'testurl.com',
+  };
+
+  const response = await api
+    .post('/api/blogs')
+    .send(newBlogData);
+
+  expect(response.status).toBe(401);
+});
 
 test('POST /api/blogs should return 400 Bad Request if title is missing', async () => {
   const newBlogData = {
@@ -57,6 +90,7 @@ test('POST /api/blogs should return 400 Bad Request if title is missing', async 
 
   const response = await api
     .post('/api/blogs')
+    .set('Authorization',`Bearer ${token}`)
     .send(newBlogData);
 
   expect(response.status).toBe(400);
@@ -70,26 +104,37 @@ test('POST /api/blogs should return 400 Bad Request if url is missing', async ()
 
   const response = await api
     .post('/api/blogs')
+    .set('Authorization',`Bearer ${token}`)
     .send(newBlogData);
 
   expect(response.status).toBe(400);
 });
 
-test('DELETE /api/blogs should delete item from the blog list', async () => {
-  const newBlog = await bloglist.create({
+test('DELETE /api/blogs/:id should delete a blog post', async () => {
+  const newBlogData = {
     title: 'Test Blog',
     author: 'Test Author',
-    url: 'testurl.com'
-  });
+    url: 'testurl.com',
+  };
 
-  const response = await api
-    .delete(`/api/blogs/${newBlog._id}`)
+  const postResponse = await api
+    .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
+    .send(newBlogData);
 
-  expect(response.status).toBe(204)
+  const blogId = postResponse.body.id;
 
-  const deletedBlog = await bloglist.findById(newBlog._id)
+  const deleteResponse = await api
+    .delete(`/api/blogs/${blogId}`)
+    .set('Authorization', `Bearer ${token}`);
+
+  expect(deleteResponse.status).toBe(204);
+
+  const deletedBlog = await Blog.findById(blogId);
+
   expect(deletedBlog).toBeNull();
 });
+
 
 test('PUT /api/blogs/:id should update the information of an individual blog post', async () => {
   const newBlog = await bloglist.create({
@@ -191,5 +236,10 @@ test('POST /api/users should return 400 Bad Request if username is not unique', 
 
 
 afterAll(async () => {
+
+    await Blog.deleteMany({});
+  
+    
+
   await mongoose.connection.close();
 });

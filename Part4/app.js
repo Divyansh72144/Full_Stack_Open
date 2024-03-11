@@ -8,7 +8,7 @@ const app = express();
 const blogsRouter = require('./controllers/bloglists');
 const middleware = require('./utils/middleware');
 const logger = require('./utils/logger');
-
+const userExtractor = require('./utils/middleware')
 
 
 mongoose.set('strictQuery', false);
@@ -30,7 +30,7 @@ app.use(express.json());
 app.use(middleware.requestLogger);
 app.use(middleware.tokenExtractor)
 app.use('/api/users',usersRouter)
-app.use('/api/blogs', blogsRouter);
+app.use('/api/blogs', middleware.userExtractor,blogsRouter);
 app.use('/api/login',loginRouter)
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);
