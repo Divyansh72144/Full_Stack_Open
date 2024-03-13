@@ -1,29 +1,41 @@
 import axios from "axios";
+
 const baseUrl = "/api/blogs";
 const loginUrl = "/api/login";
 
-let token = null
+let token = null;
+let tokenExpiration = null;
 
-const setToken=newToken=>{
-    token=`Bearer ${newToken}`
-}
+const setToken = (newToken, expirationTime) => {
+    token = `Bearer ${newToken}`;
+    tokenExpiration = expirationTime;
+};
 
-const login = async credentials => {
+const login = async (credentials) => {
     const response = await axios.post(loginUrl, credentials);
+    const { token } = response.data;
+    const expirationTime = new Date();
+    expirationTime.setHours(expirationTime.getHours() + 1); 
+    setToken(token, expirationTime);
     return response.data;
 };
 
 const getAll = () => {
     const request = axios.get(baseUrl);
-    return request.then(response => response.data);
+    return request.then((response) => response.data);
 };
 
-const create = async newObject =>{
-    const config ={
-        headers:{Authorization: token}
+const createBlog = async (newBlog) => {
+    if (new Date() > tokenExpiration) {
+        console.log("Token has expired. Please log in again.");
+        return;
     }
-    const response = await axios.post(baseUrl, newObject, config)  
-    return response.data
-}
 
-export default { getAll ,login, setToken};
+    const config = {
+        headers: { Authorization: token },
+    };
+    const response = await axios.post(baseUrl, newBlog, config);
+    return response.data;
+};
+
+export default { getAll, login, createBlog, setToken };
