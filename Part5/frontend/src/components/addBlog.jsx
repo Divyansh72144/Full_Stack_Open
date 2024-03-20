@@ -18,8 +18,7 @@ const AddBlogForm = ({ setBlogs, setNotificationMessage, setErrorMessage }) => {
       setAuthor('');
       setUrl('');
       setTitle('');
-      const updatedBlogs = await blogService.getAll();
-      setBlogs(updatedBlogs);
+      setBlogs(prevBlogs => [...prevBlogs, newBlog]);
       setNotificationMessage('Success: Blog created');
     } catch (error) {
       console.error('Error creating blog:', error);
