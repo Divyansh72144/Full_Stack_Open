@@ -15,7 +15,11 @@ const Blog = ({ blog ,addLikes}) => {
       addLikes(blog.id, blogObject)
     }
 
-
+    const handleDelete = () => {
+      if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
+        blogService.deleteBlog(blog.id);
+      }
+    }
 
     const blogStyle = {
         paddingTop: 10,
@@ -33,6 +37,7 @@ const Blog = ({ blog ,addLikes}) => {
             <p>URL: {blog.url}</p>
             <p style={{ display: 'inline' }}>Likes: {blog.likes}</p> <button style={{ display: 'inline' }} onClick={handleLike}>Like</button>
             <p>Author: {blog.author}</p>
+            <button onClick={handleDelete}>Delete</button>
           </div>
         </Togglable>
       </div>

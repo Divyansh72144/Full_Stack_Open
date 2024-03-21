@@ -19,9 +19,14 @@ function App() {
   const [notificationMessage,setNotificationMessage] = useState(null)
   const [loginVisible, setLoginVisible] = useState(false)
   const [refreshBlog, setRefreshBlog] = useState(false)
+  const [sortedBlogs, setSortedBlogs] = useState([])
+
 
   useEffect(() => {
-    blogService.getAll().then((blogs) => setBlogs(blogs));
+    blogService.getAll().then((blogs) =>{
+    setBlogs(blogs)
+    sortBlogsByLikes();
+  });
   }, []);
 
   useEffect(() => {
@@ -88,6 +93,11 @@ function App() {
     setRefreshBlog(!refreshBlog)
  }
 
+  const sortBlogsByLikes = () => {  
+    const sorted = [...blogs].sort((a, b) => b.likes - a.likes);
+    setSortedBlogs(sorted);
+  }
+
   return (
     <div>
     {notificationMessage && (
@@ -108,7 +118,8 @@ function App() {
               <div style={{ marginBottom: '15px' }} />
               {addBlogForm()}
               <h2>Blogs</h2>
-              {blogs.map((blog) => (
+              <button onClick={sortBlogsByLikes}>Sort by Likes</button>
+              {sortedBlogs.map((blog) => (
                 <Blog key={blog.id} blog={blog}  addLikes={addLikes}/>
               ))}
             </div>
