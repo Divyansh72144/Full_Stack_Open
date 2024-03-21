@@ -18,6 +18,7 @@ function App() {
   const [title, setTitle] = useState('');
   const [notificationMessage,setNotificationMessage] = useState(null)
   const [loginVisible, setLoginVisible] = useState(false)
+  const [refreshBlog, setRefreshBlog] = useState(false)
 
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs));
@@ -82,6 +83,11 @@ function App() {
     );
   }
 
+  const addLikes = async (id, blogObject)=> {
+    await blogService.updateBlog(id, blogObject) 
+    setRefreshBlog(!refreshBlog)
+ }
+
   return (
     <div>
     {notificationMessage && (
@@ -103,7 +109,7 @@ function App() {
               {addBlogForm()}
               <h2>Blogs</h2>
               {blogs.map((blog) => (
-                <Blog key={blog.id} blog={blog} />
+                <Blog key={blog.id} blog={blog}  addLikes={addLikes}/>
               ))}
             </div>
           )}

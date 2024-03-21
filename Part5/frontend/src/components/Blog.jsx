@@ -3,18 +3,19 @@ import Togglable from "./Toggable";
 import { useState } from "react";
 import blogService from "../services/blogs";
 
-const Blog = ({ blog }) => {
-    const [likes, setLikes] = useState(blog.likes);
+const Blog = ({ blog ,addLikes}) => {
 
-    const handleLike = async () => {
-      const updatedBlog = { ...blog, likes: likes + 1 };
-      try {
-        await blogService.updateBlog(updatedBlog);
-        setLikes(likes + 1);
-      } catch (error) {
-        console.error("Failed to like the blog:", error);
+    const handleLike = () => {
+      const blogObject = {
+          title: blog.title,
+          author: blog.author,
+          url: blog.url,
+          likes: blog.likes + 1,
       }
-    };
+      addLikes(blog.id, blogObject)
+    }
+
+
 
     const blogStyle = {
         paddingTop: 10,
@@ -30,7 +31,8 @@ const Blog = ({ blog }) => {
         <Togglable buttonLabel="View" hideButtonLabel="Hide">
           <div>
             <p>URL: {blog.url}</p>
-            <p>Likes: {blog.likes}</p><button onClick={handleLike}>Like</button>
+            <p style={{ display: 'inline' }}>Likes: {blog.likes}</p> <button style={{ display: 'inline' }} onClick={handleLike}>Like</button>
+            <p>Author: {blog.author}</p>
           </div>
         </Togglable>
       </div>
