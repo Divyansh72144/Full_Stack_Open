@@ -28,9 +28,9 @@ const Blog = ({ blog ,addLikes }) => {
   }
 
   return (
-    <div style={blogStyle}>
+    <div style={blogStyle} className='blog'>
       {blog.title} {blog.author}
-      <Togglable buttonLabel="View" hideButtonLabel="Hide">
+      <Togglable buttonLabel="View" hideButtonLabel="Hide" className="shown">
         <div>
           <p>URL: {blog.url}</p>
           <p style={{ display: 'inline' }}>Likes: {blog.likes}</p> <button style={{ display: 'inline' }} onClick={handleLike}>Like</button>
