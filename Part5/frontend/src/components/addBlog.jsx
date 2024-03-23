@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import blogService from '../services/blogs'
 
-const AddBlogForm = ({ setBlogs, setNotificationMessage, setErrorMessage }) => {
+const AddBlogForm = ({ setBlogs, setNotificationMessage, setErrorMessage ,CreateBlogHandler }) => {
   const [author, setAuthor] = useState('')
   const [url, setUrl] = useState('')
   const [title, setTitle] = useState('')
@@ -20,6 +20,7 @@ const AddBlogForm = ({ setBlogs, setNotificationMessage, setErrorMessage }) => {
       setTitle('')
       setBlogs(prevBlogs => [...prevBlogs, newBlog])
       setNotificationMessage('Success: Blog created')
+      CreateBlogHandler(newBlog)
     } catch (error) {
       console.error('Error creating blog:', error)
       setErrorMessage('Error: Failed to create blog')
@@ -37,6 +38,7 @@ const AddBlogForm = ({ setBlogs, setNotificationMessage, setErrorMessage }) => {
         <div>
           <label>Title:</label>
           <input
+            id='Title-input'
             type="text"
             value={title}
             onChange={({ target }) => setTitle(target.value)}
@@ -45,6 +47,7 @@ const AddBlogForm = ({ setBlogs, setNotificationMessage, setErrorMessage }) => {
         <div>
           <label>Author:</label>
           <input
+            id='Author-input'
             type="text"
             value={author}
             onChange={({ target }) => setAuthor(target.value)}
@@ -53,6 +56,7 @@ const AddBlogForm = ({ setBlogs, setNotificationMessage, setErrorMessage }) => {
         <div>
           <label>URL:</label>
           <input
+            id='URL-input'
             type="text"
             value={url}
             onChange={({ target }) => setUrl(target.value)}
