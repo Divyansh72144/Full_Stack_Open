@@ -1,11 +1,12 @@
-const testingRouter = require('express').Router()
-const Blog = require('../models/bloglist')
+const testingRouter = require('express').Router();
+const Blog = require('../models/bloglist');
+const User = require('../models/user');
 
 testingRouter.post('/', async (request, response) => {
-  console.log('resetting database');
-  await Blog.deleteMany({})
+  await Blog.deleteMany({});
+  await User.deleteMany({});
 
-  response.status(204).end()
-})
+  response.status(204).end();
+});
 
-module.exports = testingRouter
+module.exports = testingRouter;

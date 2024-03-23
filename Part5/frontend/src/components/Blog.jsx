@@ -33,7 +33,7 @@ const Blog = ({ blog ,addLikes }) => {
       <Togglable buttonLabel="View" hideButtonLabel="Hide" className="shown">
         <div>
           <p>URL: {blog.url}</p>
-          <p style={{ display: 'inline' }}>Likes: {blog.likes}</p> <button style={{ display: 'inline' }} onClick={handleLike}>Like</button>
+          <p style={{ display: 'inline' }}>Likes: {blog.likes}</p> <button id="Like-button" style={{ display: 'inline' }} onClick={handleLike}>Like</button>
           <p>Author: {blog.author}</p>
           <button onClick={handleDelete}>Delete</button>
         </div>
