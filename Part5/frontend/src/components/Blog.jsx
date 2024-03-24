@@ -1,7 +1,7 @@
 import Togglable from './Toggable'
 import blogService from '../services/blogs'
 
-const Blog = ({ blog ,addLikes }) => {
+const Blog = ({ blog ,addLikes , user }) => {
 
   const handleLike = () => {
     const blogObject = {
@@ -19,6 +19,9 @@ const Blog = ({ blog ,addLikes }) => {
     }
   }
 
+  const showDelete = user && blog.user.username === user.username
+  console.log(blog.user.username, user.username, showDelete)
+
   const blogStyle = {
     paddingTop: 10,
     paddingLeft: 2,
@@ -35,7 +38,7 @@ const Blog = ({ blog ,addLikes }) => {
           <p>URL: {blog.url}</p>
           <p style={{ display: 'inline' }}>Likes: {blog.likes}</p> <button id="Like-button" style={{ display: 'inline' }} onClick={handleLike}>Like</button>
           <p>Author: {blog.author}</p>
-          <button onClick={handleDelete}>Delete</button>
+          {showDelete && <button onClick={handleDelete} id='remove-button'>Delete</button>}
         </div>
       </Togglable>
     </div>

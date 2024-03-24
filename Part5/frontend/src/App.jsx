@@ -120,7 +120,7 @@ function App() {
           <h2>Blogs</h2>
           <button onClick={sortBlogsByLikes}>Sort by Likes</button>
           {sortedBlogs.map((blog) => (
-            <Blog key={blog.id} blog={blog}  addLikes={addLikes}/>
+            <Blog key={blog.id} blog={blog}  addLikes={addLikes}  user={user}/>
           ))}
         </div>
       )}

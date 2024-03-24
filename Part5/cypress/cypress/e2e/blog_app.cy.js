@@ -40,6 +40,8 @@ describe('Blog app', function() {
       cy.get('#Author-input').type('author created by cypress')
       cy.get('#URL-input').type('url created by cypress')
       cy.contains('Create').click()
+      cy.reload()
+      cy.wait(2000)
       cy.contains('Sort by Likes').click()
       cy.contains('title created by cypress')
     })
@@ -67,6 +69,57 @@ describe('Blog app', function() {
       cy.contains('View').click()
       cy.contains('Likes: 1').should('be.visible')
     })
+
+    it.only('users can delete the blog', function() {
+      cy.reload()
+      cy.wait(3000)
+      cy.contains('Sort by Likes').click()
+      cy.contains('View').click()
+      cy.contains('Delete').click()
+      cy.wait(3000)
+      cy.reload()
+      cy.wait(2000)
+      cy.contains('Sort by Likes').click()
+      cy.contains('title created by cypress').should('not.exist')
+
+    })
   })
 
+  describe('Logging main user out and checking delete button', function() {
+    beforeEach(function() {
+      cy.contains('Login').click()
+      cy.get('input:first').type('testuser7')
+      cy.get('input:last').type('testpassword7')
+      cy.contains('login').click()
+      cy.contains('testuser7 logged in')
+      cy.contains('Add New Blog').click()
+      cy.get('#Title-input').type('title created by cypress')
+      cy.get('#Author-input').type('author created by cypress')
+      cy.get('#URL-input').type('url created by cypress')
+      cy.contains('Create').click()
+      cy.wait(2000)
+      cy.reload()
+      cy.wait(2000)
+      cy.contains('Sort by Likes').click()
+      cy.contains('title created by cypress')
+    })
+    it.only('only the creator can see the delete button', function() {
+      cy.contains('Logout').click()
+      const user = {
+        username: 'testuser8',
+        password: 'testpassword8',
+      }
+      cy.request('POST', 'http://localhost:3001/api/users/', user)
+      cy.contains('Login').click()
+      cy.get('input:first').type('testuser8')
+      cy.get('input:last').type('testpassword8')
+      cy.contains('login').click()
+      cy.contains('testuser8 logged in')
+
+      cy.contains('Sort by Likes').click()
+      cy.contains('View').click()
+
+      cy.contains('Delete').should('not.exist')
+    })
+  })
 })
