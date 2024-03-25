@@ -121,5 +121,41 @@ describe('Blog app', function() {
 
       cy.contains('Delete').should('not.exist')
     })
+
+
+    it.only('blogs are ordered by likes, with the most liked blog being first', function() {
+      cy.contains('Add New Blog').click()
+      cy.get('#Title-input').type('title of the most liked blog')
+      cy.get('#Author-input').type('New Blog Author')
+      cy.get('#URL-input').type('http://www.newblog.com')
+      cy.contains('Create').click()
+      cy.wait(1000)
+      cy.reload()
+
+      cy.wait(2000)
+      cy.contains('Sort by Likes').should('be.visible').click()
+      cy.wait(1000)
+      cy.contains('title of the most liked blog').should('be.visible')
+
+      cy.reload()
+      cy.wait(1500)
+      cy.contains('Sort by Likes').should('be.visible').click()
+      cy.wait(2000)
+      cy.contains('title of the most liked').contains('View').click()
+      cy.wait(2000)
+      cy.get('.blog')
+        .eq(1)
+        .find('button')
+        .contains('Like')
+        .should('be.visible')
+        .click()
+      cy.wait(1000)
+      cy.reload()
+      cy.wait(2000)
+      cy.contains('Sort by Likes').should('be.visible').click()
+      cy.get('.blog').eq(0).should('contain', 'title of the most liked blog')
+      cy.get('.blog').eq(1).should('contain', 'title created by cypress author created by cypress')
+    })
+
   })
 })
