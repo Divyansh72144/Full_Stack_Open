@@ -1,9 +1,13 @@
 import { useSelector, useDispatch } from 'react-redux'
-import { voteAction ,createAnecdotes} from './reducers/anecdoteReducer'
+import { voteAction ,createAnecdotes,sortAnecdotes} from './reducers/anecdoteReducer'
 
 const App = () => {
   const anecdotes = useSelector(state => state)
   const dispatch = useDispatch()
+
+  const sortTheAnecdotes=()=>{
+    dispatch(sortAnecdotes())
+  }
 
   const vote = (id) => {
     dispatch(voteAction(id))
@@ -17,9 +21,12 @@ const App = () => {
     dispatch(createAnecdotes(content))
   } 
 
+ 
+
   return (
     <div>
       <h2>Anecdotes</h2>
+      <button onClick={sortTheAnecdotes}>Sort anecdotes</button>
       {anecdotes.map(anecdote =>
         <div key={anecdote.id}>
           <div>
