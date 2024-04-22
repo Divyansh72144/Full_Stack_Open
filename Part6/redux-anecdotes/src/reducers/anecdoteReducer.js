@@ -1,3 +1,5 @@
+import { createSlice } from "@reduxjs/toolkit"
+
 /* eslint-disable no-case-declarations */
 const anecdotesAtStart = [
   'If it hurts, do it more often',
@@ -20,51 +22,29 @@ const asObject = (anecdote) => {
 
 const initialState = anecdotesAtStart.map(asObject)
 
-const anecdoteReducer = (state = initialState, action) => {
-  console.log('state now: ', state)
-  console.log('action', action)
-  switch (action.type) {
-    case 'VOTE':
+const anecdoteSlice= createSlice({
+  name:"anecdotes",
+  initialState,
+  reducers:{
+    vote(state,action){
       const id = action.payload.id
+      console.log("id",action )
       const anecdoteToChange = state.find(n => n.id === id)
-      const changedAnecdote = {
-        ...anecdoteToChange,
-        votes: anecdoteToChange.votes + 1
+      anecdoteToChange.votes++
+    },
+    createAnecdotes(state,action){
+      const newAnecdote={
+        id:getId(),
+        content:action.payload,
+        votes:0
       }
-      return state.map(anecdote =>
-        anecdote.id !== id ? anecdote : changedAnecdote
-      )
-    case 'NEW_ANECDOTE':
-      return [...state, action.payload]
-    case 'SORT_ANECDOTES':
-      return [...state.slice().sort((a, b) => b.votes - a.votes)];
-    default:
-      return state
-  }
-}
-
-export const voteAction = (id) => { 
-  return {
-    type: 'VOTE',
-    payload: { id }
-  }
-}
-
-export const sortAnecdotes = () => { 
-  return {
-    type: 'SORT_ANECDOTES'
-  }
-}
-
-export const createAnecdotes = (content) => {
-  return {
-    type: 'NEW_ANECDOTE',
-    payload: {
-      content: content,
-      id: getId(),
-      votes: 0
+      state.push(newAnecdote)
+    },
+    sortAnecdotes(state){
+      return [...state.slice().sort((a, b) => b.votes - a.votes)]
     }
   }
-}
+})
 
-export default anecdoteReducer
+export const{createAnecdotes,vote,sortAnecdotes}=anecdoteSlice.actions
+export default anecdoteSlice.reducer
