@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"
-
+import anecdoteService from "../../services/anecdoteServices"
 /* eslint-disable no-case-declarations */
 
 const getId = () => (100000 * Math.random()).toFixed(0)
@@ -36,5 +36,20 @@ const anecdoteSlice= createSlice({
 })
 
 
-export const{createAnecdotes,vote,sortAnecdotes,appendAnecdote,setAnecdotes}=anecdoteSlice.actions
+export const{vote,sortAnecdotes,appendAnecdote,setAnecdotes}=anecdoteSlice.actions
+
+export const initalizeAnecdotes = ()=>{
+  return async dispatch=>{
+    const anecdotes = await anecdoteService.getAll()
+    dispatch(setAnecdotes(anecdotes))
+  }
+}
+
+export const createAnecdotes=(content)=>{
+  return async dispatch=>{
+    const newAnecdote = await anecdoteService.createNew(content)
+    dispatch(appendAnecdote(newAnecdote))
+  }
+}
+
 export default anecdoteSlice.reducer
